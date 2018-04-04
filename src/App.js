@@ -1,12 +1,9 @@
 import React, { Component } from 'react';
 import { BrowserRouter as Router, Route } from 'react-router-dom'
-<<<<<<< HEAD
 import { HomePage, LoginPage, RoomsPage, UsersPage } from './components/pages'
 import Navbar from './components/Navbar';
 import './App.css';
-=======
 import { HomePage, LoginPage, RoomsPage, RoomPage } from './components/pages'
->>>>>>> 0148e21f0c86d63d99d6139e2730ac613622c6f1
 
 class App extends Component {
   render() {
@@ -18,11 +15,8 @@ class App extends Component {
           <Route exact path="/" component={HomePage} />
           <Route exact path="/login" component={LoginPage} />
           <Route exact path="/rooms" component={RoomsPage} />
-<<<<<<< HEAD
           <Route exact path="/users"component={UsersPage} />
-=======
           <Route exact path="/rooms/:roomid" component={RoomPage} />
->>>>>>> 0148e21f0c86d63d99d6139e2730ac613622c6f1
         </div>
       </Router>
     );
