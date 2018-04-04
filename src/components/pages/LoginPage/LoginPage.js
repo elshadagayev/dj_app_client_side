@@ -28,35 +28,35 @@ class LoginPage extends React.Component {
     }
 
     registerPage () {
-        return (
-            <div className="login-form">
-                <div className="form-group">
-                    <label htmlFor="email">E-mail</label>
-                    <input key="email" ref={this.setInput.bind(this)} id="email" className="form-control" type="email" placeholder="E-mail..." />
-                </div>
-                <div className="form-group">
-                    <label htmlFor="password">Password</label>
-                    <input key="password" ref={this.setInput.bind(this)} id="password" className="form-control" type="password" placeholder="password..." />
-                </div>
-                <div className="form-group">
-                    <label htmlFor="password">Retype Password</label>
-                    <input key="retype_password" ref={this.setInput.bind(this)} id="retype_password" className="form-control" type="password" placeholder="password..." />
-                </div>
-                <div className="form-group">
-                    <button className="form-control btn btn-primary" onClick={this.signUp.bind(this)}>Sign Up</button>
-                </div>
-                <div className="form-group">
-                    <a href="" onClick={(e) => {
-                        e.preventDefault();
-
-                        this.setState({
-                            ...this.state,
-                            form: 'login'
-                        })
-                    }}>Log In</a>
-                </div>
+        return <div className="login-form">
+            <div className="form-group">
+              <label htmlFor="email">E-mail</label>
+              <input key="email" ref={this.setInput.bind(this)} id="email" className="form-control" type="email" placeholder="E-mail..." />
             </div>
-        )
+            <div className="form-group">
+              <label htmlFor="password">Password</label>
+              <input key="password" ref={this.setInput.bind(this)} id="password" className="form-control" type="password" placeholder="password..." />
+            </div>
+            <div className="form-group">
+              <label htmlFor="password">Retype Password</label>
+              <input key="retype_password" ref={this.setInput.bind(this)} id="retype_password" className="form-control" type="password" placeholder="password..." />
+            </div>
+            <div className="form-group">
+              <button className="form-control btn btn-primary" onClick={this.signUp.bind(this)}>
+                Sign Up
+              </button>
+            </div>
+            <div className="form-group">
+              <a href="" onClick={e => {
+                  e.preventDefault();
+
+                  this.setState({ ...this.state, form: "login" });
+                }}>
+                Log In
+              </a>
+            </div>
+          
+          </div>;
     }
 
     loginPage () {

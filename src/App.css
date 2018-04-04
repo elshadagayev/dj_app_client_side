@@ -2,10 +2,12 @@
   text-align: center;
 }
 
-.App-logo {
-  animation: App-logo-spin infinite 20s linear;
-  height: 80px;
+body{
+ background: url("https://images.pexels.com/photos/164732/pexels-photo-164732.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940");
+ background-size:cover;
 }
+
+
 
 .App-header {
   background-color: #222;
