@@ -4,17 +4,31 @@ import axios from 'axios'
 import config from '../../../config.json'
 import $ from 'jquery'
 import { Modal, Button } from 'react-bootstrap'
+import { Link } from 'react-router-dom'
 
 class RoomsPage extends React.Component {
     constructor () {
         super()
         this.state = {
-            add_room_show: false
+            add_room_show: false,
+            rooms: []
         }
 
         this.openAddRoomModal = this.openAddRoomModal.bind(this);
         this.closeAddRoomModal = this.closeAddRoomModal.bind(this);
         this.saveRoom = this.saveRoom.bind(this);
+    }
+
+    componentDidMount () {
+        this.getMyRooms((err, res) => {
+            if(err)
+                return;
+            
+            this.setState({
+                ...this.state,
+                rooms: res.data
+            })
+        });
     }
 
     openAddRoomModal () {
@@ -30,31 +44,61 @@ class RoomsPage extends React.Component {
             add_room_show: false
         })
     }
+
     render () {
-        const rooms = this.getMyRooms();
         return (
             <div>
                 <Header />
                 <div><button className="btn btn-primary" onClick={this.openAddRoomModal}>+ Add Room</button></div>
                 <table className="table">
                     <thead>
-
+                        <tr>
+                            <th>#</th>
+                            <th>Name</th>
+                            <th>Password</th>
+                            <th>Clients</th>
+                            <th>Songs</th>
+                        </tr>
                     </thead>
+                    <tbody>
+                        {this.displayRooms()}
+                    </tbody>
                 </table>
                 {this.addRoomModal()}
             </div>
         )
     }
 
-    getMyRooms () {
+    displayRooms () {
+        if(!this.state.rooms.length)
+            return (<tr><td colSpan={5}>There is no room yet</td></tr>)
+
+        let count = 0;
+
+        return this.state.rooms.map((el, ind) => {
+            count++;
+            return (
+            <tr key={count}>
+                <td>{count}</td>
+                <td><Link to={"/rooms/"+el._id}>{el.name}</Link></td>
+                <td>{el.password}</td>
+                <td>{el.clients.length}</td>
+                <td>{el.songs.length}</td>
+            </tr>
+            )
+        })
+    }
+
+    getMyRooms (callback) {
         const user = JSON.parse(window.localStorage.getItem("user"));
         axios.get(config.api_server + "/api/dj/rooms", {
-            token: user.token,
-            id: user.id
+            params: {
+                token: user.token
+            }
         }).then(res => {
-            const data = res.data;
+            callback(null, res.data)
         }).catch(err => {
-            
+            callback(err, null);
         })
     }
 
@@ -96,7 +140,7 @@ class RoomsPage extends React.Component {
                         <input type="text" id="room_name" placeholder="Room name" className="form-control" />
                     </div>
                     <div className="form-group">
-                        <label htmlFor="room_password">Name</label>
+                        <label htmlFor="room_password">Password</label>
                         <input type="text" id="room_password" placeholder="Room password" className="form-control" />
                     </div>
                 </Modal.Body>
