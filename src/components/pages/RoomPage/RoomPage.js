@@ -2,8 +2,6 @@ import React from 'react'
 import Header from '../../Header'
 import axios from 'axios'
 import config from '../../../config.json'
-import $ from 'jquery'
-import { Link } from 'react-router-dom'
 
 class RoomPage extends React.Component {
     constructor () {
@@ -23,7 +21,7 @@ class RoomPage extends React.Component {
         }).then(res => {
             this.setState({
                 ...this.state,
-                room: res
+                room: res.data.data
             })
         }).catch(err => {
             this.setState({
@@ -43,7 +41,31 @@ class RoomPage extends React.Component {
     }
 
     displayRoom () {
-        return (<div></div>)
+        if(!this.state.room)
+            return (<h2>There is no room</h2>)
+        
+        return (
+            <table className="table">
+                <tbody>
+                    <tr>
+                        <td>Name:</td>
+                        <td><input type="text" id="name" defaultValue={this.state.room.name} /></td>
+                    </tr>
+                    <tr>
+                        <td>Password:</td>
+                        <td><input type="text" id="password" defaultValue={this.state.room.password} /></td>
+                    </tr>
+                    <tr>
+                        <td>Clients:</td>
+                        <td>{this.state.room.clients.length}</td>
+                    </tr>
+                    <tr>
+                        <td>Songs:</td>
+                        <td>{this.state.room.songs.length}</td>
+                    </tr>
+                </tbody>
+            </table>
+        )
     }
 }
 
