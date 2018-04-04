@@ -1,0 +1,11 @@
+.table {
+    color: #fff;
+    width: 50%;
+    margin: 0 auto;
+    background: rgba(0,0,0,0.5);
+    padding: 20px;
+}
+.table a {
+    color: #fff;
+    text-decoration: underline;
+}

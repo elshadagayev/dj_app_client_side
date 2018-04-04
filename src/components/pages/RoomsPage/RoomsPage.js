@@ -5,6 +5,7 @@ import config from '../../../config.json'
 import $ from 'jquery'
 import { Modal, Button } from 'react-bootstrap'
 import { Link } from 'react-router-dom'
+import './css/style.css'
 
 class RoomsPage extends React.Component {
     constructor () {
@@ -20,6 +21,18 @@ class RoomsPage extends React.Component {
     }
 
     componentDidMount () {
+        this.getMyRooms((err, res) => {
+            if(err)
+                return;
+            
+            this.setState({
+                ...this.state,
+                rooms: res.data
+            })
+        });
+    }
+
+    componentDidUpdate () {
         this.getMyRooms((err, res) => {
             if(err)
                 return;
@@ -113,9 +126,7 @@ class RoomsPage extends React.Component {
             name, password, dj: user.token
         }).then(res => {
             this.closeAddRoomModal();
-            this.forceUpdate(() => {
-                
-            })
+            this.forceUpdate()
         }).catch(err => {
             this.closeAddRoomModal();
         });
