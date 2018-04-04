@@ -1,9 +1,8 @@
 import React, { Component } from 'react';
 import { BrowserRouter as Router, Route } from 'react-router-dom'
-import { HomePage, LoginPage, RoomsPage, UsersPage } from './components/pages'
+import { HomePage, LoginPage, RoomsPage, RoomPage, UsersPage } from './components/pages'
 import Navbar from './components/Navbar';
 import './App.css';
-import { HomePage, LoginPage, RoomsPage, RoomPage } from './components/pages'
 
 class App extends Component {
   render() {
