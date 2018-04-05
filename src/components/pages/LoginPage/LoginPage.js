@@ -3,7 +3,8 @@ import axios from 'axios'
 import config from '../../../config.json'
 import './css/login.css'
 
-const USER_TYPE_DJ = "DJ"
+export const USER_TYPE_DJ = "DJ"
+export const USER_TYPE_CLIENT = "client"
 
 class LoginPage extends React.Component {
     constructor () {
@@ -14,8 +15,6 @@ class LoginPage extends React.Component {
             errorMessage: "",
             successMessage: ""
         }
-
-        this.inputs = {}
     }
     render () {
         return (
@@ -31,15 +30,15 @@ class LoginPage extends React.Component {
         return <div className="login-form">
             <div className="form-group">
               <label htmlFor="email">E-mail</label>
-              <input key="email" ref={this.setInput.bind(this)} id="email" className="form-control" type="email" placeholder="E-mail..." />
+              <input key="email" ref="email" id="email" className="form-control" type="email" placeholder="E-mail..." />
             </div>
             <div className="form-group">
               <label htmlFor="password">Password</label>
-              <input key="password" ref={this.setInput.bind(this)} id="password" className="form-control" type="password" placeholder="password..." />
+              <input key="password" ref="password" id="password" className="form-control" type="password" placeholder="Type room password..." />
             </div>
             <div className="form-group">
               <label htmlFor="password">Retype Password</label>
-              <input key="retype_password" ref={this.setInput.bind(this)} id="retype_password" className="form-control" type="password" placeholder="password..." />
+              <input key="retype_password" ref="retype_password" id="retype_password" className="form-control" type="password" placeholder="Type room password..." />
             </div>
             <div className="form-group">
               <button className="form-control btn btn-primary" onClick={this.signUp.bind(this)}>
@@ -65,7 +64,7 @@ class LoginPage extends React.Component {
                 {this.state.userType === USER_TYPE_DJ ? this.djLoginPage() : this.clientLoginPage()}
                 <div className="form-group">
                     <label>I'm:&nbsp;&nbsp;&nbsp;</label>
-                    <input type="radio" ref={this.setInput.bind(this)} checked={this.state.userType === USER_TYPE_DJ} id="user_type_dj" name="user_type" onChange={() => {
+                    <input type="radio" ref="user_type" checked={this.state.userType === USER_TYPE_DJ} id="user_type_dj" name="user_type" onChange={() => {
                         this.setState({
                             ...this.state,
                             userType: USER_TYPE_DJ
@@ -73,7 +72,7 @@ class LoginPage extends React.Component {
                     }} />
                     <label htmlFor="user_type_dj">&nbsp;DJ</label>
                     &nbsp;&nbsp;&nbsp;
-                    <input type="radio" ref={this.setInput.bind(this)} checked={this.state.userType === 'client'} id="user_type_client" name="user_type" onChange={() => {
+                    <input type="radio" ref="user_type" checked={this.state.userType === 'client'} id="user_type_client" name="user_type" onChange={() => {
                         this.setState({
                             ...this.state,
                             userType: 'client'
@@ -103,11 +102,11 @@ class LoginPage extends React.Component {
             <div>
                 <div className="form-group">
                     <label htmlFor="email">E-mail</label>
-                    <input key="email" ref={this.setInput.bind(this)} id="email" className="form-control" type="email" placeholder="E-mail..." />
+                    <input key="email" ref="email" id="email" className="form-control" type="email" placeholder="E-mail..." />
                 </div>
                 <div className="form-group">
                     <label htmlFor="password">Password</label>
-                    <input key="password" ref={this.setInput.bind(this)} id="password" className="form-control" type="password" placeholder="password..." />
+                    <input key="password" ref="password" id="password" className="form-control" type="password" placeholder="password..." />
                 </div>
             </div>
         )
@@ -117,18 +116,15 @@ class LoginPage extends React.Component {
         return (
             <div>
                 <div className="form-group">
+                    <label htmlFor="full_name">Full Name</label>
+                    <input key="full_name" ref='full_name' id="full_name" className="form-control" type="text" placeholder="Type your full name" />
+                </div>
+                <div className="form-group">
                     <label htmlFor="password">Room Password</label>
-                    <input key="password" ref={this.setInput.bind(this)} id="password" className="form-control" type="password" placeholder="password..." />
+                    <input key="password" ref="password" id="password" className="form-control" type="text" placeholder="Type room password" />
                 </div>
             </div>
         )
-    }
-
-    setInput (input) {
-        if(!input)
-            return;
-        
-        this.inputs[input.id] = input;
     }
 
     login () {
@@ -136,10 +132,10 @@ class LoginPage extends React.Component {
             case USER_TYPE_DJ:
                 axios.post(config.api_server + '/api/dj/auth',
                 {
-                    email: this.inputs.email.value,
-                    password: this.inputs.password.value
+                    email: this.refs.email.value,
+                    password: this.refs.password.value
                 }).then((res) => {
-                    const data = res.data;
+                    let data = res.data;
                     if(data.statusCode !== 200)
                         return this.setState({
                             ...this.state,
@@ -147,10 +143,42 @@ class LoginPage extends React.Component {
                             errorMessage: data.errorMessage
                         })
                     
+                    data = data.data;
+                    
                     window.localStorage.setItem('user', JSON.stringify({
-                        ...data.data,
+                        token: data.token,
+                        id: data._id,
+                        email: data.email,  
                         isLoggedIn: true,
                         type: USER_TYPE_DJ
+                    }))
+
+                    window.location.href = '/'
+                }).catch((err) => {
+                    console.log("dj auth error:", err)
+                })
+                break;
+            case USER_TYPE_CLIENT:
+                axios.post(config.api_server + '/api/client/auth',
+                {
+                    full_name: this.refs.full_name.value,
+                    password: this.refs.password.value
+                }).then((res) => {
+                    let data = res.data;
+                    if(data.statusCode !== 200)
+                        return this.setState({
+                            ...this.state,
+                            successMessage: "",
+                            errorMessage: data.errorMessage
+                        })
+                    
+                    data = data.data;
+
+                    window.localStorage.setItem('user', JSON.stringify({
+                        token: data.token,
+                        id: data.clientID,  
+                        isLoggedIn: true,
+                        type: USER_TYPE_CLIENT
                     }))
 
                     window.location.href = '/'
@@ -165,9 +193,9 @@ class LoginPage extends React.Component {
 
     signUp () {
         axios.post(config.api_server + '/api/dj/register', {
-            email: this.inputs.email.value,
-            password: this.inputs.password.value,
-            retypePassword: this.inputs.retype_password.value
+            email: this.refs.email.value,
+            password: this.refs.password.value,
+            retypePassword: this.refs.retype_password.value
         }).then(res => {
             const data = res.data;
             if(data.statusCode !== 200)

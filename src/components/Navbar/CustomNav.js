@@ -1,24 +1,31 @@
 import React, { Component } from "react";
 import { Navbar, MenuItem, Nav, NavDropdown, NavItem } from "react-bootstrap";
 import { Link } from "react-router-dom";
+import { USER_TYPE_DJ, USER_TYPE_CLIENT } from '../pages/LoginPage/LoginPage'
+import './CustomNav.css'
 
 class CustomNavbar extends Component {
+  
   render() {
+    const user = JSON.parse(window.localStorage.getItem("user"));
+
     return <Navbar className="Nav" inverse collapseOnSelect>
         <Navbar.Header>
           <Navbar.Brand>
-            <a href="#brand">Q U E U E</a>
+            <Link to="/">Q U E U E</Link>
           </Navbar.Brand>
           <Navbar.Toggle />
         </Navbar.Header>
         <Navbar.Collapse>
           <Nav>
-            <NavItem eventKey={1} href="#">
-              Home
+            <NavItem eventKey={1}>
+              <Link to="/">Home</Link>
             </NavItem>
-            <NavItem eventKey={2} href="#">
-              My Rooms
+            {user && user.type === USER_TYPE_DJ ? (
+              <NavItem eventKey={2}>
+              <Link to="/rooms">My Rooms</Link>
             </NavItem>
+            ) : ""}
           </Nav>
           <Nav pullRight>
             <NavItem onClick={e => {

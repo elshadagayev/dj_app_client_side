@@ -1,5 +1,4 @@
 import React from 'react'
-import Header from '../../Header'
 import axios from 'axios'
 import config from '../../../config.json'
 import $ from 'jquery'
@@ -60,24 +59,29 @@ class RoomsPage extends React.Component {
 
     render () {
         return (
-            <div>
-                <Header />
-                <div><button className="btn btn-primary" onClick={this.openAddRoomModal}>+ Add Room</button></div>
-                <table className="table">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Name</th>
-                            <th>Password</th>
-                            <th>Clients</th>
-                            <th>Songs</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {this.displayRooms()}
-                    </tbody>
-                </table>
-                {this.addRoomModal()}
+            <div className="row">
+                <div className="col-lg-3"></div>
+                <div className="col-lg-6">
+                    <div className="form-group">
+                        <button className="form-control btn btn-primary" onClick={this.openAddRoomModal}>+ Add Room</button>
+                    </div>
+                    <table className="table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Name</th>
+                                <th>Password</th>
+                                <th>Clients</th>
+                                <th>Songs</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {this.displayRooms()}
+                        </tbody>
+                    </table>
+                    {this.addRoomModal()}
+                </div>
+                <div className="col-lg-3"></div>
             </div>
         )
     }
@@ -104,6 +108,9 @@ class RoomsPage extends React.Component {
 
     getMyRooms (callback) {
         const user = JSON.parse(window.localStorage.getItem("user"));
+        if(!user)
+            return;
+
         axios.get(config.api_server + "/api/dj/rooms", {
             params: {
                 token: user.token
@@ -142,7 +149,7 @@ class RoomsPage extends React.Component {
                 >
                 <Modal.Header closeButton>
                     <Modal.Title id="contained-modal-title">
-                    Contained Modal
+                    Create New Room
                     </Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
