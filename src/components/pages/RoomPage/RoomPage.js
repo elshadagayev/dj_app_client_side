@@ -27,23 +27,6 @@ class RoomPage extends React.Component {
         if(!this.user)
             return
 
-            /*axios.get(config.api_server + '/api/dj/room', {
-                params: {
-                    room_id: this.props.match.params.roomid,
-                    token: this.user.token
-                }
-            }).then(res => {
-                this.setState({
-                    ...this.state,
-                    room: res.data.data
-                })
-            }).catch(err => {
-                this.setState({
-                    ...this.state,
-                    room: null
-                })
-            })*/
-
         this.getRoomInfo();
 
         setInterval(() => this.getRoomInfo(), 10000)

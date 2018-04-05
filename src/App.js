@@ -3,8 +3,13 @@ import { BrowserRouter as Router, Route } from 'react-router-dom'
 import { HomePage, LoginPage, RoomsPage, RoomPage, UsersPage } from './components/pages'
 import Navbar from './components/Navbar';
 import './App.css';
+import SearchSpotifySong from './components/SearchSpotifySong';
 
 class App extends Component {
+  constructor () {
+    super();
+    
+  }
   render() {
     this.checkSession()
     return (
@@ -16,6 +21,7 @@ class App extends Component {
           <Route exact path="/rooms" component={RoomsPage} />
           <Route exact path="/users"component={UsersPage} />
           <Route exact path="/rooms/:roomid" component={RoomPage} />
+          <Route exact path="/callback" component={HomePage} />
         </div>
       </Router>
     );

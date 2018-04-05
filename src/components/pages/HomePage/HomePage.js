@@ -21,6 +21,19 @@ class HomePage extends React.Component {
     }
 
     componentDidMount () {
+        if(!this.user)
+            return;
+        
+        switch(this.user.type) {
+            case USER_TYPE_CLIENT:
+                if(window.location.hash.match(/^#access_token/))
+                    return this.saveSpotifyAccessToken();
+                this.getClientSongs();
+                break;
+        }
+    }
+
+    getClientSongs () {
         let songs = this.state.songs;
         axios.get(config.api_server + '/api/client/songs', {
             params: {
@@ -36,10 +49,21 @@ class HomePage extends React.Component {
                 songs: res.data.data
             })
         })
+    }
+
+    saveSpotifyAccessToken () {
+        let access_token = window.location.hash.split("=")
+        if(access_token[1])
+            access_token = access_token[1];
         
+        this.user.spotify_access_token = access_token;
+        window.localStorage.setItem("user", JSON.stringify(this.user));
+        window.location.href = "/" 
     }
 
     render () {
+        if(!this.user)
+            return (<div></div>)
         switch(this.user.type) {
             case USER_TYPE_DJ:
                 return this.djHomePage()

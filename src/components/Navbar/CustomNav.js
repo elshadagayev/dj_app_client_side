@@ -5,10 +5,13 @@ import { USER_TYPE_DJ, USER_TYPE_CLIENT } from '../pages/LoginPage/LoginPage'
 import './CustomNav.css'
 
 class CustomNavbar extends Component {
+
+  constructor () {
+    super();
+    this.user = JSON.parse(window.localStorage.getItem("user"));
+  }
   
   render() {
-    const user = JSON.parse(window.localStorage.getItem("user"));
-
     return <Navbar className="Nav" inverse collapseOnSelect>
         <Navbar.Header>
           <Navbar.Brand>
@@ -18,10 +21,12 @@ class CustomNavbar extends Component {
         </Navbar.Header>
         <Navbar.Collapse>
           <Nav>
-            <NavItem eventKey={1}>
-              <Link to="/">Home</Link>
-            </NavItem>
-            {user && user.type === USER_TYPE_DJ ? (
+            {this.user ? (
+              <NavItem eventKey={1}>
+                <Link to="/">Home</Link>
+              </NavItem>
+            ) : ""}          
+            {this.user && this.user.type === USER_TYPE_DJ ? (
               <NavItem eventKey={2}>
               <Link to="/rooms">My Rooms</Link>
             </NavItem>
