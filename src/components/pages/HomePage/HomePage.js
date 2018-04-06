@@ -120,9 +120,22 @@ class HomePage extends React.Component {
 
     displayTabsBody () {
         switch(this.state.current_tab) {
+            case TAB_MY_SONGS:
+                return this.displayClientSongs();
             default:
                 return this.displaySearch()
         }
+    }
+
+    displayClientSongs () {
+        axios.get(config.api_server + '/api/client/songs', {
+            token: this.user.token,
+            clientID: this.user.id
+        }).then(res => {
+            console.log("AAA", res);
+        })
+
+        return (<div>my songs</div>)
     }
 
     displaySearch () {

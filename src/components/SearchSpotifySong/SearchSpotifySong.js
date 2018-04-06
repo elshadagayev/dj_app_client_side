@@ -69,6 +69,7 @@ class SearchSpotifySong extends React.Component {
                                     <th>Name</th>
                                     <th>Artist</th>
                                     <th>Release Date</th>
+                                    <th></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -77,8 +78,8 @@ class SearchSpotifySong extends React.Component {
                                     if(!el.preview_url)
                                         return;
                                     return (
-                                        <tr>
-                                            <td><button style={{color:"#333", background:"#fff", border:"1px solid #ccc"}} onClick={(e) => {
+                                        <tr key={ind} id={`tr_${ind}`}>
+                                            <td><button className="btn btn-primary" onClick={(e) => {
                                                 this.playSong(e.target, el.preview_url)
                                             }}>play</button></td>
                                             <td>{album.name}</td>
@@ -86,6 +87,9 @@ class SearchSpotifySong extends React.Component {
                                                 return (<div>{artist.name}</div>)
                                             })}</td>
                                             <td>{album.release_date}</td>
+                                            <td><button className="btn btn-primary" onClick={() => {
+                                                this.addSong(el.id, `tr_${ind}`)
+                                            }}>Add</button></td>
                                         </tr>
                                     )
                                 })}
@@ -95,6 +99,21 @@ class SearchSpotifySong extends React.Component {
                 ) : ""}
             </div>
         )
+    }
+
+    addSong (songID, trId) {
+        axios.post(config.api_server + '/api/client/songs/add', 
+        {
+            songID,
+            token: this.user.token,
+            clientID: this.user.id
+        }).then(res => {
+            let data = res.data;
+            if(data.statusCode !== 200)
+                return;
+            const trDOM = document.querySelector('#' + trId)
+           trDOM.parentNode.removeChild(trDOM);
+        })
     }
 
     searchSong (e) {
