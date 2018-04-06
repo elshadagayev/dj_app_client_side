@@ -83,8 +83,8 @@ class SearchSpotifySong extends React.Component {
                                                 this.playSong(e.target, el.preview_url)
                                             }}>play</button></td>
                                             <td>{album.name}</td>
-                                            <td>{album.artists.map((artist) => {
-                                                return (<div>{artist.name}</div>)
+                                            <td>{album.artists.map((artist, ind) => {
+                                                return (<div key={ind}>{artist.name}</div>)
                                             })}</td>
                                             <td>{album.release_date}</td>
                                             <td><button className="btn btn-primary" onClick={() => {
@@ -111,6 +111,7 @@ class SearchSpotifySong extends React.Component {
             let data = res.data;
             if(data.statusCode !== 200)
                 return;
+            this.props.onGetSongs();
             const trDOM = document.querySelector('#' + trId)
            trDOM.parentNode.removeChild(trDOM);
         })
