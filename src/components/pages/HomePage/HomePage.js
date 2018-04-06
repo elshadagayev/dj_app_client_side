@@ -12,12 +12,18 @@ class HomePage extends React.Component {
     constructor () {
         super()
         this.user = JSON.parse(window.localStorage.getItem("user"))
+        const audioPlayer = new Audio();
+        audioPlayer.onended = () => {
+            document.querySelectorAll('.play-btn').forEach(button => {
+                button.innerHTML = 'Play';
+            });
+        }
         
         this.state = {
             songs: [],
             all_songs: [],
             current_tab: TAB_SEARCH_SONG,
-            audioPlayer: new Audio(),
+            audioPlayer
         }
 
         this.clickTab = this.clickTab.bind(this);
@@ -54,6 +60,10 @@ class HomePage extends React.Component {
     }
 
     playSong (button, url) {
+        document.querySelectorAll('.play-btn').forEach(button => {
+            button.innerHTML = 'Play';
+        });
+
         if(this.state.audioPlayer.src != url) {
             this.state.audioPlayer.src = url;
             this.state.audioPlayer.play();
@@ -288,8 +298,8 @@ class HomePage extends React.Component {
                             <tbody>
                                 {this.state.songs.map((el, ind) => {
                                     return (
-                                        <tr key={ind}>
-                                            <td><button className="btn btn-primary" onClick={(e) => {
+                                        <tr key={el.id}>
+                                            <td><button className="btn btn-primary play-btn" onClick={(e) => {
                                                 this.playSong(e.target, el.preview_url)
                                             }}>play</button></td>
                                             <td>{el.name} ({el.artists.join(',')})</td>
@@ -323,16 +333,20 @@ class HomePage extends React.Component {
                             <tbody>
                                 {this.state.all_songs.map((el, ind) => {
                                     return (
-                                        <tr key={ind}>
-                                            <td><button className="btn btn-primary" onClick={(e) => {
+                                        <tr key={el.id}>
+                                            <td><button className="btn btn-primary play-btn" onClick={(e) => {
                                                 this.playSong(e.target, el.preview_url)
                                             }}>play</button></td>
                                             <td>{el.name} ({el.artists.join(',')})</td>
                                             <td>
                                                 {el.clientID !== this.user.id ? (
                                                     <div>
-                                                        <button onClick={() => this.likeSong(el)} className="btn btn-primary">like</button>
-                                                        <button onClick={() => this.dislikeSong(el)}  className="btn btn-primary">dislike</button>
+                                                        {!this.wasLiked(el.id) ? (
+                                                            <button onClick={() => this.likeSong(el)} className="btn btn-primary">like</button>
+                                                        ): ""}
+                                                        {!this.wasDisliked(el.id) ? (
+                                                            <button onClick={() => this.dislikeSong(el)}  className="btn btn-primary">dislike</button>
+                                                        ): ""}
                                                     </div>
                                                 ) : ""}
                                             </td>
@@ -347,24 +361,54 @@ class HomePage extends React.Component {
         )
     }
 
+    wasLiked (songID) {
+        const likes = this.user.likes || [];
+        return likes.indexOf(songID) !== -1;
+    }
+
+    wasDisliked (songID) {
+        const dislikes = this.user.dislikes || [];
+        return dislikes.indexOf(songID) !== -1;
+    }
+
     likeSong (song) {
         axios.post(config.api_server + '/api/client/songs/like', {
             songID: song.id,
             token: this.user.token,
             clientID: this.user.id
         }).then(res => {
+            this.saveLikeDislikeHistory(song.id, 1);
             this.getAllSongs();
         })
     }
 
     dislikeSong (song) {
-        axios.post(config.api_server + '/api/client/songs/like', {
+        axios.post(config.api_server + '/api/client/songs/dislike', {
             songID: song.id,
             token: this.user.token,
             clientID: this.user.id
         }).then(res => {
+            this.saveLikeDislikeHistory(song.id, -1);
             this.getAllSongs();
         })
+    }
+
+    saveLikeDislikeHistory (songID, action) {
+        const likes = this.user.likes || [];
+        const dislikes = this.user.dislikes || [];
+
+        switch(action) {
+            case 1:
+                likes.push(songID);
+                break;
+            case -1:
+                dislikes.push(songID);
+                break;
+        }
+
+        this.user.likes = likes;
+        this.user.dislikes = dislikes;
+        window.localStorage.setItem('user', JSON.stringify(this.user));
     }
 
     removeMyAudio (songID) {
