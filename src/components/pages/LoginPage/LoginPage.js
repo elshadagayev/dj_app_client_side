@@ -19,7 +19,7 @@ class LoginPage extends React.Component {
     render () {
         return (
             <div className="col-lg-12">
-                {this.state.errorMessage ? (<div className="alert alert-danger">{this.state.errorMessage}</div>) : ""}
+                {this.state.errorMessage ? (<div className="alert alert-danger">{this.state.errorMessage.toString()}</div>) : ""}
                 {this.state.successMessage ? (<div className="alert alert-success">{this.state.successMessage}</div>) : ""}
                 {this.state.form === 'login' ? this.loginPage() : this.registerPage()}
             </div>
@@ -147,7 +147,6 @@ class LoginPage extends React.Component {
                     
                     window.localStorage.setItem('user', JSON.stringify({
                         token: data.token,
-                        id: data._id,
                         email: data.email,  
                         isLoggedIn: true,
                         type: USER_TYPE_DJ

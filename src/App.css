@@ -24,6 +24,13 @@ body{
   font-size: large;
 }
 
+.no-data {
+  text-align: center;
+  font-size: 2em;
+  font-weight: bold;
+  color: #fff;
+}
+
 @keyframes App-logo-spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }

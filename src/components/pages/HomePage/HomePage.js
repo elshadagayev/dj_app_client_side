@@ -2,8 +2,12 @@ import React from 'react'
 import { USER_TYPE_CLIENT, USER_TYPE_DJ } from '../LoginPage/LoginPage'
 import SearchSpotifySong from '../../SearchSpotifySong'
 import config from '../../../config.json'
+import CheckSpotifyAccess from '../../CheckSpotifyAccess'
 import axios from 'axios'
+import MySocket from '../../../modules/my-socket/SocketIO';
+import PageBlocker from '../../PageBlocker'
 
+const TAB_GENERAL_INFO = 'tabs/general_info'
 const TAB_MY_SONGS = 'tabs/my_songs'
 const TAB_ALL_SONGS = 'tabs/all_songs'
 const TAB_SEARCH_SONG = 'tabs/search_song'
@@ -18,15 +22,19 @@ class HomePage extends React.Component {
                 button.innerHTML = 'Play';
             });
         }
+
+        this.io = new MySocket();
         
         this.state = {
             songs: [],
             all_songs: [],
-            current_tab: TAB_SEARCH_SONG,
-            audioPlayer
+            current_tab: TAB_GENERAL_INFO,
+            audioPlayer,
+            server_connect_failed: null,
+            general_info: {}
         }
 
-        this.clickTab = this.clickTab.bind(this);
+        this.openTab = this.openTab.bind(this);
         this.playSong = this.playSong.bind(this);
         this.removeMyAudio = this.removeMyAudio.bind(this);
     }
@@ -37,25 +45,11 @@ class HomePage extends React.Component {
         
         switch(this.user.type) {
             case USER_TYPE_CLIENT:
-                if(window.location.hash.match(/^#access_token/))
-                    return this.saveSpotifyAccessToken();
-                setInterval(this.checkSpotifyTokenExpireTime.bind(this), 1000);
                 this.getClientSongs();
                 this.getAllSongs();
+                this.getGeneralInfo();
+                this.checkRoomExistance();
                 break;
-        }
-    }
-
-    checkSpotifyTokenExpireTime () {
-        const create_time = this.user.spotify_access_token_create_time;
-        if(!create_time)
-            return;
-        const now = Date.now();
-
-        if(Math.abs(create_time - now) > config.spotify_token_expire_time) {
-            this.user.spotify_access_token = this.user.spotify_access_token_create_time = undefined;
-            window.localStorage.setItem('user', JSON.stringify(this.user));
-            return;
         }
     }
 
@@ -77,7 +71,7 @@ class HomePage extends React.Component {
         }
     }
 
-    getClientSongs () {
+    /*getClientSongs_bkp () {
         let songs = this.state.songs;
         axios.get(config.api_server + '/api/client/songs', {
             params: {
@@ -135,20 +129,107 @@ class HomePage extends React.Component {
                 })
             })
         })
+    }*/
+
+    getClientSongs () {
+        const socket = this.io.request('get_client_songs', {
+            token: this.user.token,
+            clientID: this.user.id
+        }, res1 => {
+            if(res1.statusCode !== 200)
+                return;
+
+            const ids = res1.data.map(el => {
+                return el.songID;
+            })
+
+            if(!ids || !ids.length)
+                return this.setState({
+                    ...this.state,
+                    songs: []
+                });
+
+            axios.get('https://api.spotify.com/v1/tracks', {
+                params: {
+                    ids: ids.join(','),
+                },
+                headers: {
+                    "Authorization": `Bearer ${this.user.spotify_access_token}`,
+                }
+            }).then(res => {
+                let songs = res.data.tracks.map(song => {
+                    const songs = {
+                        id: song.id,
+                        artists: song.artists.map(el => el.name),
+                        preview_url: song.preview_url,
+                        name: song.album.name,
+                        release_date: song.album.release_date,
+                    }
+
+                    return songs;
+                })
+
+                songs = songs.map(el => {
+                    let song = res1.data.find(song => {
+                        return song.songID == el.id
+                    })
+
+                    el.clientID = song.clientID;
+                    el.likes = song.likes;
+                    el.dislikes = song.dislikes;
+                    return el;
+                })
+
+                this.setState({
+                    ...this.state,
+                    songs
+                })
+            })
+        });
+
+        socket.on('connect_error', error => {
+            console.log("get_client_songs connect error", error)
+        })
+
+        socket.on('connect_timeout', timeout => {
+            console.log("get_client_songs connect timeout", timeout)
+        })
+
+        socket.on('error', error => {
+            console.log("get_client_songs error", error)
+        })
+
+        socket.on('disconnect', reason => {
+            console.log("get_client_songs disconnected", reason)
+        })
+
+        socket.on('reconnect', attemptNumber => {
+            console.log("get_client_songs reconnected", attemptNumber)
+        })
+
+        socket.on('reconnect_attempt', attemptNumber => {
+            console.log("get_client_songs reconnect attempt", attemptNumber)
+        })
+
+        socket.on('reconnecting', attemptNumber => {
+            console.log("get_client_songs reconnecting", attemptNumber)
+        })
     }
 
     getAllSongs () {
         let songs = this.state.all_songs || [];
-        axios.get(config.api_server + '/api/client/songs/all', {
-            params: {
-                token: this.user.token,
-                clientID: this.user.id
-            }
-        }).then(res1 => {
-            if(res1.data.statusCode !== 200)
+        const socket = this.io.request('get_all_songs', {
+            token: this.user.token,
+            clientID: this.user.id
+        }, res1 => {
+            this.setState({
+                ...this.state,
+                server_connect_failed: null
+            })
+            if(res1.statusCode !== 200)
                 return;
             
-            const ids = res1.data.data.map(el => {
+            const ids = res1.data.map(el => {
                 return el.songID;
             })
 
@@ -179,7 +260,7 @@ class HomePage extends React.Component {
                 })
 
                 songs = songs.map(el => {
-                    let song = res1.data.data.find(song => {
+                    let song = res1.data.find(song => {
                         return song.songID == el.id
                     })
 
@@ -193,26 +274,116 @@ class HomePage extends React.Component {
                     ...this.state,
                     all_songs: songs
                 })
-            }).catch(err => {
-                //console.log("BBB", err);
             })
-        }).catch(err => {
-            //console.log("AAA", err);
+        })
+
+        socket.on('connect_error', err => {
+            /*this.setState({
+                ...this.state,
+                server_connect_failed: 'Could not be connected to the server'
+            })*/
+        })
+
+        socket.on('connect_timeout', timeout => {
+            /*this.setState({
+                ...this.state,
+                server_connect_failed: 'Could not connect to the server'
+            })*/
+        })
+
+        socket.on('error', err => {
+            /*this.setState({
+                ...this.state,
+                server_connect_failed: 'Could not connect to the server'
+            })*/
+        })
+
+        socket.on('disconnect', reason => {
+            this.setState({
+                ...this.state,
+                server_connect_failed: 'Disconnected from the server'
+            })
+        })
+
+        socket.on('reconnect', attemptNumber => {
+            this.setState({
+                ...this.state,
+                server_connect_failed: null
+            })
+        })
+
+        socket.on('reconnect_attempt', attemptNumber => {
+            this.setState({
+                ...this.state,
+                server_connect_failed: 'Could not be connected to the server. Trying to connect to the server. Attempt ' + attemptNumber
+            })
+        })
+
+        socket.on('reconnecting', attemptNumber => {
+            let message = (
+            <div>
+                <div>Could not be connected to the server</div>
+                <div>Trying to connect to the server...</div>
+                <div>Attempt #{attemptNumber}</div>
+            </div>
+            )
+            
+            this.setState({
+                ...this.state,
+                server_connect_failed: message
+            })
         })
     }
 
-    saveSpotifyAccessToken () {
-        let access_token = window.location.hash.split("=")
-        if(access_token[1])
-            access_token = access_token[1];
-        
-        this.user.spotify_access_token = access_token;
-        this.user.spotify_access_token_create_time = Date.now();
-        window.localStorage.setItem("user", JSON.stringify(this.user));
-        window.location.href = "/" 
+    checkRoomExistance () {
+        try { 
+            const roomToken = this.user.token;
+
+            const socket = this.io.request('room_deleted', {
+                roomToken
+            }, res => {
+                if(res.statusCode !== 200)
+                    return;
+
+                this.user = null;
+                window.localStorage.setItem('user', null);
+                window.location.reload();
+            })
+        } catch(E) {
+            
+        }
+    }
+
+    getGeneralInfo () {
+        try {
+            const clientID = this.user.id; 
+            const roomToken = this.user.token;
+            
+            const socket = this.io.request('get_room_general_info', {
+                clientID, roomToken
+            }, res => {
+                if(res.statusCode !== 200)
+                    return;
+
+                this.setState({
+                    ...this.state,
+                    general_info: res.data
+                })
+            })
+        } catch(E) {
+            
+        }
     }
 
     render () {
+        return (
+        <PageBlocker block={!!this.state.server_connect_failed} messages={this.state.server_connect_failed}>
+            {this.condRender()}
+        </PageBlocker>
+        )
+    }
+
+    condRender () {
         if(!this.user)
             return (<div></div>)
         switch(this.user.type) {
@@ -224,26 +395,33 @@ class HomePage extends React.Component {
     }
 
     djHomePage () {
-        return (<div>DJ HomePage</div>)
+        return (
+            <CheckSpotifyAccess>
+                <div>DJ HomePage</div>
+            </CheckSpotifyAccess>
+        )
     }
 
     clientHomePage () {
         return (
-            <div className="row">
-                <div className="col-lg-3"></div>
-                <div className="col-lg-6">
-                    {this.displayTabs()}
-                    {this.displayTabsBody()}
+                <div className="row">
+                    <div className="col-lg-3"></div>
+                    <div className="col-lg-6">
+                        <CheckSpotifyAccess>
+                            {this.displayTabs()}
+                            {this.displayTabsBody()}
+                        </CheckSpotifyAccess>
+                    </div>
+                    <div className="col-lg-3"></div>
                 </div>
-                <div className="col-lg-3"></div>
-            </div>
         )
     }
 
-    clickTab (e) {
+    openTab (e) {
         e.preventDefault();
 
         switch(e.target.dataset.id) {
+            case TAB_GENERAL_INFO:
             case TAB_SEARCH_SONG:
             case TAB_ALL_SONGS:
             case TAB_MY_SONGS:
@@ -262,15 +440,18 @@ class HomePage extends React.Component {
     displayTabs () {
         return (
             <ul className="nav nav-tabs">
-                <li className={this.state.current_tab === TAB_SEARCH_SONG ? "active" : ""}><a href="#" onClick={this.clickTab} data-id={TAB_SEARCH_SONG}>Search</a></li>
-                <li className={this.state.current_tab === TAB_MY_SONGS ? "active" : ""}><a href="#" onClick={this.clickTab} data-id={TAB_MY_SONGS}>My Songs</a></li>
-                <li className={this.state.current_tab === TAB_ALL_SONGS ? "active" : ""}><a href="#" onClick={this.clickTab} data-id={TAB_ALL_SONGS}>Songs</a></li>
+                <li className={this.state.current_tab === TAB_GENERAL_INFO ? "active" : ""}><a href="#" onClick={this.openTab} data-id={TAB_GENERAL_INFO}>General Info</a></li>
+                <li className={this.state.current_tab === TAB_MY_SONGS ? "active" : ""}><a href="#" onClick={this.openTab} data-id={TAB_MY_SONGS}>My Songs ({this.state.songs.length})</a></li>
+                <li className={this.state.current_tab === TAB_ALL_SONGS ? "active" : ""}><a href="#" onClick={this.openTab} data-id={TAB_ALL_SONGS}>All Songs ({this.state.all_songs.length})</a></li>
+                <li className={this.state.current_tab === TAB_SEARCH_SONG ? "active" : ""}><a href="#" onClick={this.openTab} data-id={TAB_SEARCH_SONG}>Search</a></li>
             </ul>
         )
     }
 
     displayTabsBody () {
         switch(this.state.current_tab) {
+            case TAB_GENERAL_INFO:
+                return this.displayClientGeneralInfo();
             case TAB_MY_SONGS:
                 return this.displayClientSongs();
             case TAB_ALL_SONGS:
@@ -278,6 +459,35 @@ class HomePage extends React.Component {
             default:
                 return this.displaySearch()
         }
+    }
+
+    displayClientGeneralInfo () {
+        return (
+            <table class="table">
+                <tbody>
+                    <tr>
+                        <td style={{width:'20%'}}>My name:</td>
+                        <td>{this.state.general_info.client}</td>
+                    </tr>
+                    <tr>
+                        <td style={{width:'20%'}}>Room name:</td>
+                        <td>{this.state.general_info.name}</td>
+                    </tr>
+                    <tr>
+                        <td>Room password:</td>
+                        <td>{this.state.general_info.password}</td>
+                    </tr>
+                    <tr>
+                        <td>Songs:</td>
+                        <td>{this.state.general_info.songs}</td>
+                    </tr>
+                    <tr>
+                        <td>Room clients:</td>
+                        <td>{this.state.general_info.clients}</td>
+                    </tr>
+                </tbody>
+            </table>
+        )
     }
 
     displayClientSongs () {
@@ -311,7 +521,7 @@ class HomePage extends React.Component {
                             </tbody>
                         </table>
                     </div>
-                ) : (<div>There is no song</div>)}
+                ) : (<div className="no-data">There is no song</div>)}
             </div>
         )
     }
@@ -341,11 +551,11 @@ class HomePage extends React.Component {
                                             <td>
                                                 {el.clientID !== this.user.id ? (
                                                     <div>
-                                                        {!this.wasLiked(el.id) ? (
-                                                            <button onClick={() => this.likeSong(el)} className="btn btn-primary">like</button>
-                                                        ): ""}
-                                                        {!this.wasDisliked(el.id) ? (
-                                                            <button onClick={() => this.dislikeSong(el)}  className="btn btn-primary">dislike</button>
+                                                        {!this.wasLiked(el.id) && !this.wasDisliked(el.id) ? (
+                                                            <div>
+                                                                <button onClick={() => this.likeSong(el)} className="btn btn-primary">like</button>
+                                                                <button onClick={() => this.dislikeSong(el)}  className="btn btn-primary">dislike</button>
+                                                            </div>
                                                         ): ""}
                                                     </div>
                                                 ) : ""}
@@ -356,7 +566,7 @@ class HomePage extends React.Component {
                             </tbody>
                         </table>
                     </div>
-                ) : (<div>There is no song</div>)}
+                ) : (<div className="no-data">There is no song</div>)}
             </div>
         )
     }
@@ -378,7 +588,6 @@ class HomePage extends React.Component {
             clientID: this.user.id
         }).then(res => {
             this.saveLikeDislikeHistory(song.id, 1);
-            this.getAllSongs();
         })
     }
 
@@ -389,7 +598,6 @@ class HomePage extends React.Component {
             clientID: this.user.id
         }).then(res => {
             this.saveLikeDislikeHistory(song.id, -1);
-            this.getAllSongs();
         })
     }
 
@@ -416,13 +624,11 @@ class HomePage extends React.Component {
             songID,
             token: this.user.token,
             clientID: this.user.id
-        }).then(res => {
-            this.getClientSongs();
         })
     }
 
     displaySearch () {
-        return <SearchSpotifySong onGetSongs={this.getClientSongs.bind(this)} />
+        return <SearchSpotifySong />
     }
 }
 

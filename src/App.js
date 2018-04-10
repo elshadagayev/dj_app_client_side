@@ -3,13 +3,17 @@ import { BrowserRouter as Router, Route } from 'react-router-dom'
 import { HomePage, LoginPage, RoomsPage, RoomPage, UsersPage } from './components/pages'
 import Navbar from './components/Navbar';
 import './App.css';
-import SearchSpotifySong from './components/SearchSpotifySong';
+import SearchSpotifySong from './components/SearchSpotifySong'
 
 class App extends Component {
   constructor () {
     super();
+  }
+
+  componentDidMount () {
     
   }
+
   render() {
     this.checkSession()
     return (

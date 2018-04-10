@@ -6,13 +6,6 @@ class SearchSpotifySong extends React.Component {
     constructor () {
         super()
         this.user = JSON.parse(window.localStorage.getItem("user"));
-        this.spotifyAuthUrl = "https://accounts.spotify.com/authorize?" + [
-            "client_id=" + config.spotify_client_id,
-            "scope=playlist-read-private playlist-read-collaborative playlist-modify-public user-read-recently-played playlist-modify-private ugc-image-upload user-follow-modify user-follow-read user-library-read user-library-modify user-read-private user-read-email user-top-read user-read-playback-state",
-            "response_type=token",
-            "redirect_uri=http://localhost:3000/callback"
-        ].join('&')
-
         this.searchSong = this.searchSong.bind(this);
         this.playSong = this.playSong.bind(this);
         this.timeOutHandler = 0;
@@ -25,15 +18,7 @@ class SearchSpotifySong extends React.Component {
     }
 
     render () {
-        if(!this.user.spotify_access_token)
-            return this.displaySpotifyAuthButton();
         return this.displaySpotifySearch();
-    }
-
-    displaySpotifyAuthButton () {
-        return (
-            <a class="btn btn-primary" href={this.spotifyAuthUrl}>Get Access To Spotify</a>
-        )
     }
 
     playSong (button, url) {
@@ -111,7 +96,6 @@ class SearchSpotifySong extends React.Component {
             let data = res.data;
             if(data.statusCode !== 200)
                 return;
-            this.props.onGetSongs();
             const trDOM = document.querySelector('#' + trId)
            trDOM.parentNode.removeChild(trDOM);
         })
