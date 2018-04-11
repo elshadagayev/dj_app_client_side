@@ -60,50 +60,48 @@ class RoomPage extends React.Component {
                         return el.songID;
                     })
         
-                    if(!ids || !ids.length)
-                        return;
-        
-                    axios.get('https://api.spotify.com/v1/tracks', {
-                        params: {
-                            ids: ids.join(','),
-                        },
-                        headers: {
-                            "Authorization": `Bearer ${this.user.spotify_access_token}`,
-                        }
-                    }).then(sres => {
-                        let songs = sres.data.tracks.map(song => {
-                            const songs = {
-                                id: song.id,
-                                artists: song.artists.map(el => el.name),
-                                preview_url: song.preview_url,
-                                uri: song.uri,
-                                name: song.album.name,
-                                release_date: song.album.release_date,
+                    if(ids && ids.length) {
+                        axios.get('https://api.spotify.com/v1/tracks', {
+                            params: {
+                                ids: ids.join(','),
+                            },
+                            headers: {
+                                "Authorization": `Bearer ${this.user.spotify_access_token}`,
                             }
-        
-                            return songs;
-                        })
-        
-                        songs = songs.map(el => {
-                            let song = res.data.room.songs.find(song => {
-                                return song.songID == el.id
+                        }).then(sres => {
+                            let songs = sres.data.tracks.map(song => {
+                                const songs = {
+                                    id: song.id,
+                                    artists: song.artists.map(el => el.name),
+                                    preview_url: song.preview_url,
+                                    uri: song.uri,
+                                    name: song.album.name,
+                                    release_date: song.album.release_date,
+                                }
+            
+                                return songs;
                             })
-        
-                            el.clientID = song.clientID;
-                            el.likes = song.likes;
-                            el.dislikes = song.dislikes;
-                            return el;
-                        })
+            
+                            songs = songs.map(el => {
+                                let song = res.data.room.songs.find(song => {
+                                    return song.songID == el.id
+                                })
+            
+                                el.clientID = song.clientID;
+                                el.likes = song.likes;
+                                el.dislikes = song.dislikes;
+                                return el;
+                            })
 
-                        const room = this.state.room;
-                        room.songs = songs || [];
-        
-                        this.setState({
-                            ...this.state,
-                            room,
-                            playlist: room.songs
+                            const room = this.state.room;
+                            room.songs = songs || [];
+            
+                            this.setState({
+                                ...this.state,
+                                playlist: room.songs
+                            })
                         })
-                    })
+                    }
                 }
 
                 const room = {
