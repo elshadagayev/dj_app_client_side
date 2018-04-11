@@ -58,7 +58,7 @@ class PlayList extends React.Component {
         }
 
         setTimeout(() => {
-            this.play(this.props.list[index].uri)
+            this.play(this.props.list[index])
         }, 2000)
     }
 
