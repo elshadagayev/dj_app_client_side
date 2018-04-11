@@ -250,8 +250,8 @@ class RoomPage extends React.Component {
         return (
             <ul className="nav nav-tabs">
                 <li className={this.state.current_tab === TAB_GENERAL_INFO ? "active" : ""}><a href="#" onClick={this.openTab} data-id={TAB_GENERAL_INFO}>General info</a></li>
-                <li className={this.state.current_tab === TAB_CLIENTS ? "active" : ""}><a href="#" onClick={this.openTab} data-id={TAB_CLIENTS}>Clients ({this.state.general_info.room.clients_len})</a></li>
-                <li className={this.state.current_tab === TAB_SONGS ? "active" : ""}><a href="#" onClick={this.openTab} data-id={TAB_SONGS}>Songs ({this.state.general_info.room.songs_len})</a></li>
+                <li className={this.state.current_tab === TAB_CLIENTS ? "active" : ""}><a href="#" onClick={this.openTab} data-id={TAB_CLIENTS}>Clients ({this.state.general_info.room.clients_len || 0})</a></li>
+                <li className={this.state.current_tab === TAB_SONGS ? "active" : ""}><a href="#" onClick={this.openTab} data-id={TAB_SONGS}>Songs ({this.state.general_info.room.songs_len || 0})</a></li>
             </ul>
         )
     }
