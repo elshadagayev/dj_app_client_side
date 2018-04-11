@@ -1,6 +1,30 @@
 {
     "api_server": "http://localhost:5000",
-    "spotify_client_id": "230be2f46909426b8b80cac36446b52a",
+    "spotify_redirect_uri": "http://localhost:3000",
+    "spotify_client_id": "7991b519c9ab4040a9d5f913f0006339",
+    "spotify_client_secret": "165bff93ab1a4cf398517ca53c06ee3c",
+    "spotify_dj_scopes": [
+        "streaming", 
+        "user-read-birthdate", 
+        "user-read-email", 
+        "user-read-private"
+    ],
+    "spotify_client_scopes": [
+        "playlist-read-private", 
+        "playlist-read-collaborative", 
+        "playlist-modify-public", 
+        "user-read-recently-played", 
+        "playlist-modify-private", 
+        "ugc-image-upload", 
+        "user-follow-modify", 
+        "user-follow-read",
+        "user-library-read", 
+        "user-library-modify", 
+        "user-read-private",
+        "user-read-email",
+        "user-top-read",
+        "user-read-playback-state"
+    ],
     "spotify_token_expire_time": 3600000,
     "socketIOServer": "http://localhost:5000",
     "socketIOTimer": 1000

@@ -6,7 +6,6 @@ import CheckSpotifyAccess from '../../CheckSpotifyAccess'
 import PlayList from './PlayList'
 import './css/style.css'
 import config from '../../../config.json'
-import Script from 'react-load-script'
 
 const TAB_GENERAL_INFO = 'tab/general_info'
 const TAB_CLIENTS = 'tab/clients'
@@ -209,6 +208,14 @@ class RoomPage extends React.Component {
         )
     }
 
+    stopResumeVoting () {
+        axios.post(config.api_server + '/api/dj/room/stop_voting', {
+                room_id: this.props.match.params.roomid,
+                token: this.user.token,
+                voting: !this.state.general_info.room.voting_stopped
+        })
+    }
+
     openTab (e) {
         e.preventDefault();
         const a = e.target;
@@ -282,35 +289,23 @@ class RoomPage extends React.Component {
                         <td>Songs:</td>
                         <td>{this.state.general_info.room.songs_len}</td>
                     </tr>
+                    <tr>
+                        <td colSpan={2}>{
+                            !this.state.general_info.room.voting_stopped ? 
+                            (<button className="btn btn-primary" onClick={this.stopResumeVoting.bind(this)}>Stop Voting</button>) : 
+                            (<button className="btn btn-primary" onClick={this.stopResumeVoting.bind(this)}>Resume Voting</button>)
+                        }</td>
+                    </tr>
                 </tbody>
             </table>
         )
     }
 
     displaySongs () {
-        return (
-            <table className="table">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Name</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {!this.state.room.songs || !this.state.room.songs.length ? (<tr><td colSpan={5} className="text-center">No song</td></tr>) :
-                        this.state.room.songs.map((el, ind) => {
-                            return (
-                                <tr key={el.id}>
-                                    <td>{ind+1}</td>
-                                    <td><PlayList uri={el.uri} /></td>
-                                    <td><a href={el.uri} class="btn btn-primary">Spotify Player</a></td>
-                                </tr>
-                            )
-                        })
-                    }
-                </tbody>
-            </table>
-        )
+        if(!this.state.room.songs || !this.state.room.songs.length)
+            return (<div className="text-center no-data">No song</div>)
+
+        return (<PlayList list={this.state.room.songs} roomid={this.props.match.params.roomid} />)
     }
 
     displayClients () {

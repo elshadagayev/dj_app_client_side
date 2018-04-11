@@ -10,3 +10,23 @@
     width: 100%;
     height: 80px;
 }
+
+.record td {
+    height: 60px;
+}
+
+.record .btn {
+    display: none;
+}
+
+.record:hover .btn {
+    display: block;
+}
+
+.record.playing .btn {
+    display: none !important;
+}
+
+.record.playing {
+    background: #00f;
+}

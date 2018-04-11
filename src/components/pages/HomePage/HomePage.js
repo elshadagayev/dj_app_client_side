@@ -186,34 +186,6 @@ class HomePage extends React.Component {
                 })
             })
         });
-
-        socket.on('connect_error', error => {
-            console.log("get_client_songs connect error", error)
-        })
-
-        socket.on('connect_timeout', timeout => {
-            console.log("get_client_songs connect timeout", timeout)
-        })
-
-        socket.on('error', error => {
-            console.log("get_client_songs error", error)
-        })
-
-        socket.on('disconnect', reason => {
-            console.log("get_client_songs disconnected", reason)
-        })
-
-        socket.on('reconnect', attemptNumber => {
-            console.log("get_client_songs reconnected", attemptNumber)
-        })
-
-        socket.on('reconnect_attempt', attemptNumber => {
-            console.log("get_client_songs reconnect attempt", attemptNumber)
-        })
-
-        socket.on('reconnecting', attemptNumber => {
-            console.log("get_client_songs reconnecting", attemptNumber)
-        })
     }
 
     getAllSongs () {
@@ -551,7 +523,7 @@ class HomePage extends React.Component {
                                             <td>
                                                 {el.clientID !== this.user.id ? (
                                                     <div>
-                                                        {!this.wasLiked(el.id) && !this.wasDisliked(el.id) ? (
+                                                        {!this.state.general_info.voting_stopped && !this.wasLiked(el.id) && !this.wasDisliked(el.id) ? (
                                                             <div>
                                                                 <button onClick={() => this.likeSong(el)} className="btn btn-primary">like</button>
                                                                 <button onClick={() => this.dislikeSong(el)}  className="btn btn-primary">dislike</button>

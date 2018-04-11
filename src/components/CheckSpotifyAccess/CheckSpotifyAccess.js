@@ -6,12 +6,10 @@ class SearchSpotifySong extends React.Component {
     constructor () {
         super()
         this.user = JSON.parse(window.localStorage.getItem("user"));
-        this.spotifyAuthUrl = "https://accounts.spotify.com/authorize?" + [
-            "client_id=" + config.spotify_client_id,
-            "scope=playlist-read-private playlist-read-collaborative playlist-modify-public user-read-recently-played playlist-modify-private ugc-image-upload user-follow-modify user-follow-read user-library-read user-library-modify user-read-private user-read-email user-top-read user-read-playback-state",
-            "response_type=token",
-            "redirect_uri=http://localhost:3000/callback"
-        ].join('&')
+        const scopes = [];
+        this.spotifyAuthUrl = this.createSpotifyAuthUrl();
+
+        //streaming user-read-birthdate user-read-email user-modify-playback-state user-read-private
     }
 
     componentDidMount () {
@@ -19,6 +17,27 @@ class SearchSpotifySong extends React.Component {
             return this.saveSpotifyAccessToken();
 
         setInterval(this.checkSpotifyTokenExpireTime.bind(this), 1000);
+    }
+
+    createSpotifyAuthUrl () {
+        const params = [
+            "client_id=" + config.spotify_client_id,
+            "response_type=token",
+            "redirect_uri=" + encodeURIComponent("http://localhost:3000/callback"),
+            "show_dialog=true"
+        ];
+
+        switch(this.user.type) {
+            case "DJ":
+                params.push('scope=' + config.spotify_dj_scopes.join(' '))
+                break;
+            default:
+                params.push('scope=' + config.spotify_client_scopes.join(' '))
+        }
+
+        //https://accounts.spotify.com/en/authorize?response_type=token&client_id=adaaf209fb064dfab873a71817029e0d&redirect_uri=https://beta.developer.spotify.com/documentation/web-playback-sdk/quick-start/&scope=streaming user-read-birthdate user-read-email user-modify-playback-state user-read-private&show_dialog=true
+
+        return "https://accounts.spotify.com/en/authorize?" + params.join('&')
     }
 
     render () {
