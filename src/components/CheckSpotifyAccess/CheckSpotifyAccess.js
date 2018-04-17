@@ -23,7 +23,7 @@ class SearchSpotifySong extends React.Component {
         const params = [
             "client_id=" + config.spotify_client_id,
             "response_type=token",
-            "redirect_uri=" + encodeURIComponent("http://localhost:3000/callback"),
+            "redirect_uri=" + encodeURIComponent(config.spotify_redirect_uri + "callback"),
             "show_dialog=true"
         ];
 

@@ -1,6 +1,6 @@
 {
-    "api_server": "http://localhost:5000",
-    "spotify_redirect_uri": "http://localhost:3000",
+    "api_server": "https://dj-queue.herokuapp.com",
+    "spotify_redirect_uri": "https://dj-queue.herokuapp.com/",
     "spotify_client_id": "7991b519c9ab4040a9d5f913f0006339",
     "spotify_client_secret": "165bff93ab1a4cf398517ca53c06ee3c",
     "spotify_dj_scopes": [
@@ -26,6 +26,6 @@
         "user-read-playback-state"
     ],
     "spotify_token_expire_time": 3600000,
-    "socketIOServer": "http://localhost:5000",
+    "socketIOServer": "https://dj-queue.herokuapp.com",
     "socketIOTimer": 1000
 }
